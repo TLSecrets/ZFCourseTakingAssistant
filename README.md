@@ -1,3 +1,33 @@
+# ZFCourseTakingAssistant (TLSecrets 修改版)
+
+本项目基于 [Void-JackLee/ZFCourseTakingAssistant](https://github.com/Void-JackLee/ZFCourseTakingAssistant) 复刻并修改，遵循 GNU General Public License v2.0 开源。
+
+**原始项目作者**：VoidJackLee  
+**修改者**：TLSecrets  
+**修改日期**：2026-07-03  
+
+---
+
+## 🔧 本修改版的主要变更
+
+基于原版 v1.1.4，本修改版进行了以下调整：
+
+### ✅ 保留的核心功能
+- 课程加载与解析
+- 教学班浏览与队列管理（左侧课程列表 → 中间详情 → 右侧待抢队列）
+- 一键抢课（手动触发）
+- 捡漏（定时轮询）
+- 从队列删除课程
+- 安全补丁（HTML转义、`.append` 劫持）
+
+### 🐛 修复的问题
+- **队列点击同步**：点击右侧待抢队列中的教学班，详情面板现在能正确显示课程信息。
+- **本地持久化存储**：待抢队列会在 `localStorage` 中保存，刷新页面后自动恢复，不会丢失配置。
+
+---
+
+## 📌 原始项目介绍（以下内容源自原项目）
+
 # ZFCourseTakingAssistant
 A script for Chinese University Student grabbing courses with Zheng Fang Educational administration system.
 
@@ -29,7 +59,7 @@ A script for Chinese University Student grabbing courses with Zheng Fang Educati
 
 ## Usage
 
-1. 安装油猴子，安装本脚本[https://github.com/Void-JackLee/ZFCourseTakingAssistant/raw/main/抢课脚本.user.js](https://github.com/Void-JackLee/ZFCourseTakingAssistant/raw/main/%E6%8A%A2%E8%AF%BE%E5%8A%A9%E6%89%8B.user.js)
+1. 安装油猴子，安装本脚本 [https://github.com/TLSecrets/ZFCourseTakingAssistant/raw/main/抢课助手.user.js](https://github.com/TLSecrets/ZFCourseTakingAssistant/raw/main/%E6%8A%A2%E8%AF%BE%E5%8A%A9%E6%89%8B.user.js)
 
 2. 访问你的选课网址，待他加载完毕后如图所示。（可以按F12打开控制台查看详情）![食用方法](pic/usage.jpg)
 
@@ -52,5 +82,19 @@ A script for Chinese University Student grabbing courses with Zheng Fang Educati
 
 Run `build.py` script in project folder to build.
 
+---
 
+## 📄 许可证
 
+本项目是 [Void-JackLee/ZFCourseTakingAssistant](https://github.com/Void-JackLee/ZFCourseTakingAssistant) 的修改版本，遵循 **GNU General Public License v2.0**。
+
+- 您必须保留原始版权声明。
+- 您必须标明修改内容。
+- 修改后的代码必须以相同许可证（GPL v2）发布。
+- 提供完整的源代码（本仓库已包含）。
+
+完整的许可证文本请参见 [LICENSE](LICENSE) 文件。
+
+**原始版权声明**：  
+Copyright © VoidJackLee. All rights reserved.  
+**修改部分版权**：© 2026 TLSecrets, under GPL v2.
