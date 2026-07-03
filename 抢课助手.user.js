@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         抢课助手-待抢队列保存
 // @namespace    https://void-lee.cn
-// @version      1.1.5
+// @version      1.1.5.2
 // @description  自动抢课，支持队列持久化，自动确认选课弹窗
 // @author       VoidJackLee (original), TLSecrets (modifications)
 // @match        */jwglxt/xsxk/zzxkyzb_cxZzxkYzbIndex.html*
@@ -233,25 +233,31 @@ window.zfc_safeGetEl = function(id) {
     }
 })();
 
-// ========== 自动确认选课弹窗 ==========
+// ============================================================
+// 自动确认选课弹窗（支持 #btn_confirm 和 #btn_ok）
+// ============================================================
 (function() {
-    let autoConfirmEnabled = true;
+    var autoConfirmEnabled = true;
 
     function clickConfirm() {
-        const confirmBtn = document.querySelector('#btn_confirm');
+        // 尝试点击确认按钮（两种常见 ID）
+        var confirmBtn = document.querySelector('#btn_confirm, #btn_ok');
         if (confirmBtn && confirmBtn.offsetParent !== null) {
             confirmBtn.click();
-            console.log('[抢课助手] 自动点击确认按钮');
+            console.log('[抢课助手] 自动点击确认按钮 (ID: ' + confirmBtn.id + ')');
         }
     }
 
-    // MutationObserver 监听新增节点
-    const observer = new MutationObserver(function(mutations) {
+    var observer = new MutationObserver(function(mutations) {
         if (!autoConfirmEnabled) return;
-        for (let mut of mutations) {
-            for (let node of mut.addedNodes) {
+        for (var i = 0; i < mutations.length; i++) {
+            var mut = mutations[i];
+            for (var j = 0; j < mut.addedNodes.length; j++) {
+                var node = mut.addedNodes[j];
                 if (node.nodeType === 1) {
-                    if (node.id === 'confirmModal' || (node.querySelector && node.querySelector('#btn_confirm'))) {
+                    // 检测弹窗是否包含 #btn_confirm 或 #btn_ok
+                    if (node.id === 'confirmModal' || 
+                        (node.querySelector && node.querySelector('#btn_confirm, #btn_ok'))) {
                         setTimeout(clickConfirm, 100);
                     }
                 }
@@ -260,13 +266,13 @@ window.zfc_safeGetEl = function(id) {
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // 定时轮询兜底
+    // 定时轮询兜底（防止某些弹窗未被 MutationObserver 捕获）
     setInterval(function() {
         if (!autoConfirmEnabled) return;
         clickConfirm();
     }, 500);
 
-    // 暴露控制开关
+    // 暴露控制开关（可在控制台输入 toggleAutoConfirm(false) 临时禁用）
     window.toggleAutoConfirm = function(enable) {
         autoConfirmEnabled = enable;
         console.log('[抢课助手] 自动确认已' + (enable ? '启用' : '禁用'));
