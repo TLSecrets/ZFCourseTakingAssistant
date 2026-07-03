@@ -1,6 +1,6 @@
 {
   "name": "zf_course_take_assistant",
-  "version": "1.1.5.4",
+  "version": "1.1.5.5",
   "newVersionDescription": "自动抢课，支持队列持久化，自动确认弹窗、自动确认默认关闭",
   "description": "Auto fetch courses. (Modified by TLSecrets, based on Void-JackLee's work)",
   "main": "抢课助手.user.js",
