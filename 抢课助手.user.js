@@ -1,7 +1,9 @@
+// 仅作编程教学演示用途，自动化调用选课接口存在明确违规风险，禁止商用、代抢课程、高频轰炸教务服务器，所有使用风险由使用者自行承担。
+
 // ==UserScript==
 // @name         抢课助手-待抢队列保存
 // @namespace    https://void-lee.cn
-// @version      1.1.6
+// @version      1.1.7
 // @description  自动抢课，支持队列持久化，自动确认弹窗（默认关闭）
 // @author       VoidJackLee (original), TLSecrets (modifications)
 // @match        */jwglxt/xsxk/zzxkyzb_cxZzxkYzbIndex.html*
@@ -18,6 +20,25 @@
  * 修改日期: 2026-07-04
  * 修改者: TLSecrets
  */
+
+// ========== 自动抢课提交功能开关（默认禁用） ==========
+// 如需启用自动抢课轮询，请将下面两行的注释进行更改，或将下面的 false 改为 true
+// var AUTO_TAKE_ENABLED = true;
+var AUTO_TAKE_ENABLED = false; // 默认禁用
+
+// ========== 本地日志记录 ==========
+function logAutoTakeAction(action, detail) {
+    try {
+        var logs = JSON.parse(localStorage.getItem('zfc_auto_take_logs') || '[]');
+        logs.push({
+            timestamp: new Date().toISOString(),
+            action: action,
+            detail: detail || ''
+        });
+        localStorage.setItem('zfc_auto_take_logs', JSON.stringify(logs));
+    } catch (e) {}
+}
+
 (() => {
     var __webpack_modules__ = {
         364: n => {
@@ -368,9 +389,10 @@
                         val = $(this).val(), obj_course = JSON.parse(val), id = `_${(new Date).getTime()}`, $("#selected").append(`<option id="${id}" onclick="addOptionListener(this)">${obj_course.class_name}</option>`), take[id] = obj_course.meta
                     })
                 }), $("#fetch").click(take_course), $("#stole").click(function() {
+                    // 自动抢课提交功能默认禁用，如需启用请修改脚本顶部的 AUTO_TAKE_ENABLED 变量
                     x0p({
                         title: "挂机",
-                        text: "请输入间隔毫秒数,过小会导致未知风险增大，后果自负(不填默认1000ms)",
+                        text: "请输入间隔毫秒数，过小会导致未知风险增大，后果自负（不填默认3000ms）",
                         type: "input",
                         height: "200px",
                         maxHeight: "200px",
@@ -378,11 +400,53 @@
                         inputPromise: function(n, e) { return new Promise(function(n, t) { isNaN(e) && n("这不是一个数字"), n(null) }) },
                         buttons: [{ type: "cancel", text: "取消" }, { type: "ok", text: "确定", showLoading: !0, default: !0, key: 13 }]
                     }).then(function(n) {
-                        if ("ok" === n.button) { null != n.text && null != n.text && "" != n.text || (n.text = "1000");
-                            let e = parseInt(n.text);
-                            setInterval(take_course, e), x0p("成功", "目前无法自动停止，若要停止请刷新页面", "ok") }
-                    })
-                })
+                        if ("ok" === n.button) {
+                            // 处理间隔，强制最小 3000 毫秒（3秒）
+                            var interval = parseInt(n.text);
+                            if (isNaN(interval) || interval < 3000) {
+                                interval = 3000;
+                                x0p("提示", "间隔已自动调整为 3000 毫秒（最低限制）", "info");
+                            }
+                            // 检查自动抢课功能是否启用
+                            if (typeof AUTO_TAKE_ENABLED !== 'undefined' && AUTO_TAKE_ENABLED === true) {
+                                // 弹出固定确认弹窗
+                                x0p({
+                                    title: "⚠️ 风险告知及承诺",
+                                    text: "本自动化提交功能仅限使用者本人单一账号自用，严禁代他人抢课、倒卖课程名额；高频自动化访问会干扰学校教务系统正常运行，违反校园网络管理规定及《中华人民共和国网络安全法》，由此产生的校内处分、行政处罚、法律刑事责任均由使用者独立承担，开发者不承担任何连带责任。",
+                                    type: "warning",
+                                    width: "90%",
+                                    maxWidth: "600px",
+                                    height: "60%",
+                                    maxHeight: "400px",
+                                    buttons: [
+                                        { type: "cancel", text: "取消" },
+                                        { type: "ok", text: "我已知晓风险，仅个人自用", key: 13, default: true }
+                                    ]
+                                }).then(function(result) {
+                                    if ("ok" === result.button) {
+                                        // 记录日志（本地持久化）
+                                        try {
+                                            var logs = JSON.parse(localStorage.getItem('zfc_auto_take_logs') || '[]');
+                                            logs.push({
+                                                timestamp: new Date().toISOString(),
+                                                action: 'auto_take_start',
+                                                interval: interval
+                                            });
+                                            localStorage.setItem('zfc_auto_take_logs', JSON.stringify(logs));
+                                        } catch (e) {}
+                                        // 为降低对学校服务器冲击强制限流，禁止私自修改间隔参数。
+                                        setInterval(take_course, interval);
+                                        x0p("成功", "自动抢课已启动，间隔 " + interval + " 毫秒。\n目前无法自动停止，若要停止请刷新页面。", "ok");
+                                    } else {
+                                        x0p("已取消", "自动抢课未启动。", "info");
+                                    }
+                                });
+                            } else {
+                                x0p("功能禁用", "自动抢课提交功能默认禁用。\n如需启用，请编辑脚本源码，将脚本顶部的 AUTO_TAKE_ENABLED 变量设置为 true 并取消注释。\n（请遵守学校规定，合理使用。）", "error");
+                            }
+                        }
+                    });
+                });
             }
 
             function take_course() {
